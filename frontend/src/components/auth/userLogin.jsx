@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from "./userLogin.module.css"
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate,NavLink } from 'react-router-dom'; 
 import ReCAPTCHA from "react-google-recaptcha";
 
 function UserLogin() {
@@ -52,13 +52,16 @@ function UserLogin() {
                     <label htmlFor="password">Password</label><br />
                     <input type="password" name="password" placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}/><br />
 
-                    <br />
+                   
                     <ReCAPTCHA
                         sitekey="6LfA1XMqAAAAAMyb8tNCQraolBom5ZlxmflnYoDZ" // Replace with your site key
                         onChange={onCaptchaChange}
                     />
                     <button type="submit">Login</button>
                 </form>
+
+
+                <div><NavLink className={styles.createAcc} to="/signup">Don't have an account? Register here</NavLink></div>
             </div>
 
             {message && (
