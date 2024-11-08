@@ -8,6 +8,9 @@ import StudentRegister from "./components/user/studentRegister.jsx"
 import SoloEvents from './components/user/individualEvent.jsx'
 import UserProfile from './components/user/profile.jsx'
 
+import TeamEvent from "./components/user/teamEvent.jsx"
+import ParticipationSummary from './components/user/participationDash.jsx'
+
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 function App() {
 
@@ -25,12 +28,20 @@ function App() {
   }
   ,
   {
+    path:'/teamEvent',
+    element:<TeamEvent/>
+  }
+  ,
+  {
     path:'/individualEvent',
     element:<SoloEvents/>
-  }
+  },
   ,{
     path:"/profile",
     element:<UserProfile/>
+  },{
+    path:"/participation",
+    element:<ParticipationSummary/>
   }
   ])
 
