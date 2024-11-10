@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from "./userLogin.module.css"
 import axios from 'axios';
-import { useNavigate,NavLink } from 'react-router-dom'; 
+import { useNavigate, NavLink } from 'react-router-dom';
 import ReCAPTCHA from "react-google-recaptcha";
 
 function UserLogin() {
@@ -11,10 +11,10 @@ function UserLogin() {
     const [message, setMessage] = useState('');
     const [captchaValue, setCaptchaValue] = useState(null); // State for captcha value
 
-    
 
-     // Function to handle CAPTCHA change
-     const onCaptchaChange = (value) => {
+
+    // Function to handle CAPTCHA change
+    const onCaptchaChange = (value) => {
         setCaptchaValue(value); // Update captcha value state
         console.log("Login Captcha :", value);
     };
@@ -26,16 +26,18 @@ function UserLogin() {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://127.0.0.1:5000/users/login', { email, password,captchaValue });
+            const response = await axios.post('/api/users/login', { email, password, captchaValue }, { withCredentials: true });
 
             console.log(response.data)
+
             localStorage.setItem(' token', response.data.token);
             setMessage('Logged in successfully!');
-            
+
         } catch (error) {
             console.log(error);
-            setMessage(error.response.data.message);
-            
+            const message = error.response && error.response.data ? error.response.data.message : 'An error occurred';
+            setMessage(message);
+
         }
     };
 
@@ -47,12 +49,12 @@ function UserLogin() {
 
                 <form onSubmit={handleLogin}>
                     <label htmlFor="username">Email</label><br />
-                    <input type="email" name="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)}/><br />
+                    <input type="email" name="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)} /><br />
 
                     <label htmlFor="password">Password</label><br />
-                    <input type="password" name="password" placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}/><br />
+                    <input type="password" name="password" placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)} /><br />
 
-                   
+
                     <ReCAPTCHA
                         sitekey="6LfA1XMqAAAAAMyb8tNCQraolBom5ZlxmflnYoDZ" // Replace with your site key
                         onChange={onCaptchaChange}
@@ -70,8 +72,8 @@ function UserLogin() {
                 </div>
             )}
         </div>
-        );
-    
+    );
+
 }
 
 export default UserLogin;

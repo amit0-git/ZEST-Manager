@@ -1,46 +1,104 @@
-import React from 'react';
-import styles from "./profile.module.css"
-
+import React, { useState, useEffect } from 'react';
+import axios from "axios";
+import styles from "./profile.module.css";
 
 const UserProfile = () => {
+  const userEmail = localStorage.getItem('userEmail');
+  console.log(userEmail);
+
+  const [data, setData] = useState({
+    email: "",
+    pid: "",
+    rollno: "",
+    name: "",
+    phone: "",
+    address: "",
+    college: "",
+    branch: "",
+    year: ""
+  });
+
+  const [loading, setLoading] = useState(true); // To manage loading state
+  const [error, setError] = useState(null); // To manage error state
+
+  const fetchData = async (email) => {
+    try {
+      const response = await axios.post("/api/users/getData", { email: email }, {
+        withCredentials: true
+      });
+
+
+      console.log(response.data);
+      setData(response.data.data);
+
+
+    } catch (error) {
+
+
+      console.log(error);
+      setError("Failed to fetch user data."); // Set error message
+
+
+    } finally {
+      setLoading(false); // Set loading to false after fetching
+    }
+  };
+
+  useEffect(() => {
+    // Fetch data from backend
+    if (userEmail) {
+      fetchData(userEmail);
+    } else {
+      setLoading(false); // If no email, stop loading
+      setError("No email found in localStorage."); // Set error message
+    }
+  }, [userEmail]); // Dependency array includes userEmail
+
+  if (loading) {
+    return <div>Loading...</div>; // Loading state
+  }
+
+  if (error) {
+    return <div>{error}</div>; // Display error message
+  }
+
   return (
-    
-    <div className="wrapper">
-      <h1>Your PID is Pxyz</h1>
-      <div className="tableWrapper">
+    <div className={styles.wrapper}>
+      <h1>Your PID is {data.pid || "Not Available"}</h1>
+      <div className={styles.tableWrapper}>
         <table>
           <tbody>
             <tr>
               <td>Email</td>
-              <td>root.avanti@gmail.com</td>
+              <td>{data.email || "Not Available"}</td>
             </tr>
             <tr>
               <td>Roll No</td>
-              <td>2100140100014</td>
+              <td>{data.rollno || "Not Available"}</td>
             </tr>
             <tr>
               <td>Name</td>
-              <td>Amit Verma</td>
+              <td>{data.name || "Not Available"}</td>
             </tr>
             <tr>
               <td>Phone</td>
-              <td>7505574391</td>
+              <td>{data.phone || "Not Available"}</td>
             </tr>
             <tr>
               <td>Address</td>
-              <td>Barkhera</td>
+              <td>{data.address || "Not Available"}</td>
             </tr>
             <tr>
               <td>College</td>
-              <td>SRMS CET</td>
+              <td>{data.college || "Not Available"}</td>
             </tr>
             <tr>
               <td>Branch</td>
-              <td>CSE</td>
+              <td>{data.branch || "Not Available"}</td>
             </tr>
             <tr>
               <td>Year</td>
-              <td>4</td>
+              <td>{data.year || "Not Available"}</td>
             </tr>
           </tbody>
         </table>
@@ -48,7 +106,7 @@ const UserProfile = () => {
 
       <h1>Participate In</h1>
 
-      <div className="buttonWrap">
+      <div className={styles.buttonWrap}>
         <button>Edit</button>
         <button>Individual Event</button>
         <button>Team Event</button>

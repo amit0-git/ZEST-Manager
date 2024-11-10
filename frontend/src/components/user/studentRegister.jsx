@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import styles from "./student.module.css"
 import axios from "axios";
-
-
+import { Link, useNavigate } from 'react-router-dom';
+import cookieParser from 'cookie-parser';
 
 function studentRegister() {
 
@@ -12,52 +12,73 @@ function studentRegister() {
         rollno: '',
         name: '',
         phone: '',
-        address:'',
+        address: '',
         collegeSelect: 'SRMS CET', // Default value
         branchSelect: 'CSE', // Default value
         yearSelect: '1', // Default value
     });
 
-    const [message,setMessage]=useState('');
+    const [message, setMessage] = useState('');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        console.log(`Changing ${name} to ${value}`); 
+        console.log(`Changing ${name} to ${value}`);
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
         }));
     };
 
-   const registerStudent=async ()=>{
-        try{
-            const response=await axios.post("http://127.0.0.1:5000/users/register",{
-                email:"sample@gmail.com",
-                rollno:formData.rollno,
-                name:formData.name,
-                phone:formData.phone,
-                address:formData.address,
-                college:formData.collegeSelect,
-                branch:formData.branchSelect,
-                year:formData.yearSelect
-                
-            })
+    const registerStudent = async () => {
+        try {
+            const response = await axios.post("api/users/register", {
+                // email:"sample@gmail.com",
+                rollno: formData.rollno,
+                name: formData.name,
+                phone: formData.phone,
+                address: formData.address,
+                college: formData.collegeSelect,
+                branch: formData.branchSelect,
+                year: formData.yearSelect
+
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }, { withCredentials: true })
 
             console.log("Response from Reister:", response.data); // Log the response data
             return response.data; // Return the data
         }
-        catch(error){
-            console.log("Register Error:",error)
+        catch (error) {
+            console.log("Register Error:", error)
             setMessage(error.response.data.message)
+            return null;
         }
-   }
+    }
+
+
+    const navigate = useNavigate();
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         // Handle form submission logic here (e.g., send formData to the server)
 
-        await registerStudent();
-        console.log('Form submitted:', formData);
+        const registerd = await registerStudent();
+
+        if (registerd) {
+
+
+            //store email in localstorage
+            console.log(registerd.data.email)
+            localStorage.setItem('userEmail', registerd.data.email);
+
+
+            //redirect to profile page
+            navigate("/profile");
+        }
+        console.log('Form submit:', formData);
     };
     return (
         <div id={styles.wrapper}>
@@ -165,10 +186,10 @@ function studentRegister() {
 
                 {/* response status */}
                 {message && (
-                <div className={styles.errorMessage}>
-                    {message}
-                </div>
-            )}
+                    <div className={styles.errorMessage}>
+                        {message}
+                    </div>
+                )}
             </div>
         </div>
     )

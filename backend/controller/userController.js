@@ -1,11 +1,12 @@
 const User = require("../model/user")
 const bcrypt = require("bcrypt")
 const axios = require('axios');
-const jwt=require("jsonwebtoken")
+const jwt = require("jsonwebtoken")
 //otp model
 const OTP = require("../model/otp")
 const USER = require("../model/user")
-
+const STUDENT = require("../model/studentRegister")
+const COUNT=require("../model/count")
 
 //dend otp if time is more than 5 min
 //nd no record for otp exists
@@ -38,6 +39,50 @@ async function canSendOtp(email) {
     }
 }
 
+
+///function to send data to client using email
+
+exports.getData=async (req,res)=>{
+    try{
+        const email=req.body.email;
+        console.log("email",email);
+
+        //verify email with token email
+        const token=req.cookies.token;
+    
+        if (!token){
+            return res.status(401).json({message:"Unauthorized"})
+        }
+        const decoded=await jwt.verify(token,process.env.SECRET_KEY);
+
+        const emailToken=decoded.email;
+
+
+        console.log(emailToken,email);
+        
+        if (emailToken!==email){
+            return res.status(401).json({message:"Unauthorized"})
+        }
+
+        //get data
+        const data=await STUDENT.findOne({email:email});
+        
+        if (!data){
+            return res.status(404).json({message:"Student not found"})
+        }
+
+        return res.status(200).json({data:data});
+
+        
+
+    }
+
+    catch(error){
+        console.log(error);
+
+    }
+
+}
 
 
 //send otp to the user
@@ -87,7 +132,7 @@ exports.sendOtp = async (req, res) => {
 //verify the captcha 
 async function verifyCaptcha(captcha) {
     try {
-       
+
         const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
             params: {
                 secret: "6LfA1XMqAAAAANNoqMFYYW9rm8hGDI6zET9gr4HZ",
@@ -181,9 +226,14 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { email, password ,captchaValue} = req.body;
-        console.log(email,password)
-        const user = await USER.findOne({ email:email });
+
+
+        console.log("ck token:",req.cookies.token)
+
+
+        const { email, password, captchaValue } = req.body;
+        console.log(email, password)
+        const user = await USER.findOne({ email: email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -195,12 +245,12 @@ exports.login = async (req, res) => {
         }
 
         //verify captcha
-       
-         const captchaVerify = await verifyCaptcha(captchaValue);
 
-         if (!captchaVerify.success) {
-             return res.status(400).json({ message: 'Captcha verification failed.' });
-         }
+        const captchaVerify = await verifyCaptcha(captchaValue);
+
+        if (!captchaVerify.success) {
+            return res.status(400).json({ message: 'Captcha verification failed.' });
+        }
 
         //generate token
         const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY,
@@ -208,11 +258,120 @@ exports.login = async (req, res) => {
                 expiresIn: '1h'
             });
 
+        //set the http cookie after successfull login
+
+
+        // Send token in an HTTP-only cookie
+        res.cookie('token', token, {
+            httpOnly:false, // Prevents access to cookie from JS (for security)
+            secure: false, // Use 'true' in production (HTTPS)
+          
+            maxAge: 3600 * 1000 // 1 hour expiration
+        });
+        
         res.status(200).json({ token, email: user.email });
 
 
     }
     catch (error) {
+
         console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+
+
+
+//function to get the last count of the count 
+async function getLastCount() {
+    //count number of students
+    try {
+        // Count the number of students
+        const count1 = await COUNT.findOne({ name: "lastCount" })
+
+        if (count1) {
+            const lastVal = count1.count;
+            return lastVal
+        }
+
+        else {
+            return false;
+        }
+
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+// user register
+//1. chk wheter user already registered
+
+exports.register = async (req, res) => {
+    try {
+
+
+        //get cookie data
+        const ck = req.cookies.token;
+
+        console.log("cookie", ck)
+        //verify token
+        if (!ck){
+          //return login status
+          return res.status(401).json({ message: 'Unauthorized' });
+           
+        }
+        //get last count of count collection
+        const lastCount = await getLastCount();
+        console.log("Last Count", lastCount)
+
+        const pid = "P" + Number(lastCount + 1)
+        //trim data to remove spaces
+        const decoded =  jwt.verify(ck, process.env.SECRET_KEY);
+
+        const email=  decoded.email;
+        const rollno = req.body.rollno.trim()
+        const name = req.body.name.trim()
+        const phone = req.body.phone.trim()
+        const address = req.body.address.trim();
+
+        const college = req.body.college
+        const branch = req.body.branch
+        const year = req.body.year
+
+
+        console.log(email,pid, rollno, name, phone, address, college, branch, year);
+
+
+        //chk user already registered
+        const alreadyRegistered = await STUDENT.findOne({ email: email })
+        if (alreadyRegistered) {
+            return res.status(400).json({ message: 'User already registered.' });
+        }
+        //create new user
+        const student = new STUDENT({
+            pid:pid,
+            email: email,
+            rollno: rollno,
+            name: name,
+            phone: phone,
+            address: address,
+            college: college,
+            branch: branch,
+            year: year
+
+        })
+        //save user to db
+        await student.save()
+        res.status(201).json({ message: 'User created successfully.',data:student });
+
+
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+
+    }
+}
