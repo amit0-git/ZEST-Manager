@@ -68,6 +68,69 @@ async function fetchDetailsFromPid(pid) {
     }
 }
 
+
+
+
+//maxEventParticipation condition  for solo event 
+async function maxEventParticipation(email,sEvent) {
+
+    try {
+
+        const student = await STUDENT.findOne({ email: email })
+
+        ///pid
+        const pid = student.pid
+
+        //get single events 
+        //const soloEvents1 = await INDIVIDUAL.findOne({ email: email}, { events: 1 })
+
+        const soloEvents = sEvent.length
+
+        //get team events
+
+        const team = await TEAM.countDocuments({ actual_members: pid })
+
+
+
+        console.log(soloEvents,team)
+        //condition for SRMS CET COLLEGE
+        //total 5 events 
+        if (student.college === "SRMS CET") {
+
+            if (soloEvents + team <=2) {
+                return true
+            }
+            else {
+                //return response
+                return false
+            }
+
+        }
+
+
+
+        //for other colleges 
+        //total 7 events
+        else {
+
+            if (soloEvents + team < 7) {
+                return true
+            }
+            else {
+                //return response
+                return false
+            }
+        }
+    }
+
+
+    catch (error) {
+        console.log(error)
+    }
+}
+
+
+
 //save solo events 
 
 exports.saveSoloEvents = async (req, res) => {
@@ -84,6 +147,18 @@ exports.saveSoloEvents = async (req, res) => {
 
         //get the data from the request body 
         const data = req.body.data
+
+        console.log("events: ",data)
+
+        //user participation verify logic 
+        const userParticipation = await maxEventParticipation(email,data);
+
+        if (!userParticipation){
+            return res.status(401).json({ message: 'You have exceeded the maximum number of events'})
+        }
+
+
+
 
         //save the sata in individual events
         // Find the existing record for the user
@@ -117,15 +192,95 @@ exports.saveSoloEvents = async (req, res) => {
 
 
 
+
+
+
+
+//maxEventParticipation condition  for solo event 
+async function maxEventParticipationTeam(pid1) {
+
+    try {
+
+        const student = await STUDENT.findOne({ pid: pid1})
+
+        ///pid
+        //const pid = student.pid
+        const email=student.email
+
+      
+
+        //get single events 
+        const soloEvents1 = await INDIVIDUAL.findOne({ email: email}, { events: 1 })
+
+        const soloEvents = soloEvents1.events.length
+        console.log(soloEvents1)
+        //get team events
+
+        const team = await TEAM.countDocuments({ actual_members: pid1 })
+
+
+
+        console.log(soloEvents,team)
+        //condition for SRMS CET COLLEGE
+        //total 5 events 
+        if (student.college === "SRMS CET") {
+
+            if (soloEvents + team <2) {
+                return true
+            }
+            else {
+                //return response
+                return false
+            }
+
+        }
+
+
+
+        //for other colleges 
+        //total 7 events
+        else {
+
+            if (soloEvents + team < 7) {
+                return true
+            }
+            else {
+                //return response
+                return false
+            }
+        }
+    }
+
+
+    catch (error) {
+        console.log(error)
+    }
+}
+
+
+
 //chk pid and return 
 exports.checkPid = async (req, res) => {
     try {
-        const pid = req.body.pid;
-        const data = await STUDENT.findOne({ pid: pid });
+
+        const pid1 = req.body.pid;
+        const data = await STUDENT.findOne({ pid: pid1 });
         if (!data) {
             return res.status(404).json({ message: 'PID not found!' });
         }
         console.log(data)
+
+
+        //check the maximum participation condition for pid 
+        const maxCondition=await maxEventParticipationTeam(pid1);
+
+
+        if (!maxCondition){
+            return res.status(400).json({ message: 'Maximum participation condition exceeded!' });
+        }
+
+
+
         res.status(200).json({ message: 'Student found', data: data });
 
 
@@ -203,10 +358,7 @@ exports.saveTeam = async (req, res) => {
         }
 
 
-
-
-
-        const email = verify1.email;
+         const email = verify1.email;
         const { name, event, members } = req.body;
 
 
@@ -422,14 +574,14 @@ exports.teamParticipation = async (req, res) => {
         //get the pid
         const pid = pidData.pid
 
-        
-        const response= await TEAM.find({ actual_members: { $in: [pid] } });
+
+        const response = await TEAM.find({ actual_members: { $in: [pid] } });
 
         if (!response) {
             return res.status(404).json({ message: 'No individual found with the provided email.' });
         }
         console.log(response)
-        
+
         //retrn the response
         res.status(200).json({ data: response })
 

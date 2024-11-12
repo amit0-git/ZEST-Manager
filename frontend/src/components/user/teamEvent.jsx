@@ -137,8 +137,11 @@ const CreateTeam = () => {
       }, { withCredentials: true })
 
 
+
+      
       const data=response.data;
-      console.log(data);
+      console.log(data.message);
+      setErrorMessageLast(data.message);
 
 
     }

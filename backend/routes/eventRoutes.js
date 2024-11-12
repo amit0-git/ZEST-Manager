@@ -17,4 +17,5 @@ router.post('/addVerifiedMember', eventController.addVerifiedMember);
 
 router.post('/individualParticipation', eventController.individualParticipation); 
 router.post('/teamParticipation', eventController.teamParticipation); 
+
 module.exports = router;

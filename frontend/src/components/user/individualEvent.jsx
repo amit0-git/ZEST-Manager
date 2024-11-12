@@ -7,15 +7,15 @@ const SoloEvents = () => {
 
 
   const userEmail = localStorage.getItem('userEmail');
-  const pid=localStorage.getItem("pid");
-  console.log(userEmail,pid);
+  const pid = localStorage.getItem("pid");
+  console.log(userEmail, pid);
 
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [resStatus,setResponse]=useState("");
+  const [resStatus, setResponse] = useState("");
 
 
   //get all the individual events and display on the page 
@@ -40,6 +40,35 @@ const SoloEvents = () => {
   }, []);
 
 
+  //get solo events and fill the checkbox for participated events 
+
+
+  async function getParticipatedEvents() {
+    try {
+
+      const email = localStorage.getItem("userEmail");
+
+      const response = await axios.post("/api/events/individualParticipation", {
+        email: email
+      }, {
+        withCredentials: true
+      })
+
+      console.log("already participated:", response.data.data.events)
+      //set the checkbox if the user has already participated in the event
+      setSelectedOptions(response.data.data.events);
+
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    getParticipatedEvents()
+  }, [])
+
+
 
 
 
@@ -56,17 +85,17 @@ const SoloEvents = () => {
 
   //save individual events to  database
   async function saveIndividualEvents() {
-    try{
+    try {
 
-      const response=await axios.post("/api/events/saveSoloEvents",{
-        data:selectedOptions
-      },{withCredentials:true})
+      const response = await axios.post("/api/events/saveSoloEvents", {
+        data: selectedOptions
+      }, { withCredentials: true })
       console.log(response.data)
       setResponse(response.data.message);
       alert("Events saved successfully");
-      
+
     }
-    catch(error){
+    catch (error) {
       console.log(error)
       setResponse(error.response.data.message)
 
@@ -74,9 +103,9 @@ const SoloEvents = () => {
   }
 
 
-  const handleSubmit =async () => {
+  const handleSubmit = async () => {
     await saveIndividualEvents();
-   
+
   };
 
   if (loading) return <div>Loading...</div>;
