@@ -30,7 +30,7 @@ function UserLogin() {
 
             console.log(response.data)
 
-            localStorage.setItem(' token', response.data.token);
+            localStorage.setItem('token', response.data.token);
             setMessage('Logged in successfully!');
 
         } catch (error) {

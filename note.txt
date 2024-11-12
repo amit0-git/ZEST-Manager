@@ -5,5 +5,16 @@ mongodb client close
 
 add login chk in every router and request
 
-//total participation verification in the registeration
-//team event max participation
+//total participation verification in the registeration    --done
+//team event max participation   --done
+
+
+add loggin in the project
+on errro return the response
+trim space in input
+
+team event add pids then only create team
+
+same team name  -- done 
+
+add logout  

@@ -72,7 +72,7 @@ async function fetchDetailsFromPid(pid) {
 
 
 //maxEventParticipation condition  for solo event 
-async function maxEventParticipation(email,sEvent) {
+async function maxEventParticipation(email, sEvent) {
 
     try {
 
@@ -92,12 +92,12 @@ async function maxEventParticipation(email,sEvent) {
 
 
 
-        console.log(soloEvents,team)
+        console.log(soloEvents, team)
         //condition for SRMS CET COLLEGE
         //total 5 events 
         if (student.college === "SRMS CET") {
 
-            if (soloEvents + team <=2) {
+            if (soloEvents + team <= 2) {
                 return true
             }
             else {
@@ -148,13 +148,13 @@ exports.saveSoloEvents = async (req, res) => {
         //get the data from the request body 
         const data = req.body.data
 
-        console.log("events: ",data)
+        console.log("events: ", data)
 
         //user participation verify logic 
-        const userParticipation = await maxEventParticipation(email,data);
+        const userParticipation = await maxEventParticipation(email, data);
 
-        if (!userParticipation){
-            return res.status(401).json({ message: 'You have exceeded the maximum number of events'})
+        if (!userParticipation) {
+            return res.status(401).json({ message: 'You have exceeded the maximum number of events' })
         }
 
 
@@ -201,31 +201,34 @@ async function maxEventParticipationTeam(pid1) {
 
     try {
 
-        const student = await STUDENT.findOne({ pid: pid1})
+        const student = await STUDENT.findOne({ pid: pid1 })
 
         ///pid
         //const pid = student.pid
-        const email=student.email
+        const email = student.email
 
-      
+
 
         //get single events 
-        const soloEvents1 = await INDIVIDUAL.findOne({ email: email}, { events: 1 })
+        const soloEvents1 = await INDIVIDUAL.findOne({ email: email }, { events: 1 })
+        var soloEvents = 0;
+        if (soloEvents1) {
+            soloEvents = soloEvents1.events.length
+        }
 
-        const soloEvents = soloEvents1.events.length
-        console.log(soloEvents1)
+        console.log("Team Solo", soloEvents1)
         //get team events
 
         const team = await TEAM.countDocuments({ actual_members: pid1 })
 
 
 
-        console.log(soloEvents,team)
+        console.log("Team Solo", soloEvents, team)
         //condition for SRMS CET COLLEGE
         //total 5 events 
         if (student.college === "SRMS CET") {
 
-            if (soloEvents + team <2) {
+            if (soloEvents + team < 2) {
                 return true
             }
             else {
@@ -272,10 +275,10 @@ exports.checkPid = async (req, res) => {
 
 
         //check the maximum participation condition for pid 
-        const maxCondition=await maxEventParticipationTeam(pid1);
+        const maxCondition = await maxEventParticipationTeam(pid1);
 
 
-        if (!maxCondition){
+        if (!maxCondition) {
             return res.status(400).json({ message: 'Maximum participation condition exceeded!' });
         }
 
@@ -358,13 +361,56 @@ exports.saveTeam = async (req, res) => {
         }
 
 
-         const email = verify1.email;
+        const email = verify1.email;
         const { name, event, members } = req.body;
 
+        //check for same team name event
 
-        //chk if event already registered
+        const teamName = await TEAM.findOne({ name: name })
+        if (teamName) {
+            return res.status(400).json({ message: 'Team name already exists' });
+        }
 
 
+
+        //chk maximum team participation for any team event
+        const event2 = await EVENT.findOne({ event: event });
+        const maxC = event2.limit
+
+        if (members.length > maxC) {
+            return res.status(400).json({ message: 'Maximum team participation reached' });
+        }
+
+
+
+
+
+
+        //chk if pid is already registered with the same team event
+
+        const foundPids = []; // Array to store found pids
+
+        const promises = members.map(async (member) => {
+            const result = await TEAM.findOne({
+                event: event,
+                actual_members: { $in: [member] }  // Use bracket notation for dynamic field name
+            });
+
+            // Check if the result contains the member (pid) and if it exists in actual_members
+            if (result && members.includes(member)) {
+                foundPids.push(member); // Store the found pid
+            }
+        });
+
+        // Wait for all promises to resolve
+        await Promise.all(promises);
+
+        //if the pids exists in the same event then return the pids in the response 
+        const pidsString = foundPids.join(', ');
+        if (foundPids.length > 0) {
+            return res.status(400).json({ message: `Pids ${pidsString} are already registered for ${event}` });
+
+        }
 
 
 
