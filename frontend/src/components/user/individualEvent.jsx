@@ -1,45 +1,86 @@
-
-
-import styles from "./individualEvent.module.css"
+import styles from "./individualEvent.module.css";
 import { Link } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 import React, { useEffect, useState } from 'react';
 
 const SoloEvents = () => {
 
-  //get data to fill the events from events table
-  const [events, setEvents] = useState([{ event: "", type: "" }]);
-  useEffect(async() => {
-    try {
-      const response=await axios.post("/api/users")
-    }
 
-    catch (error) {
-      console.log(error);
-    }
-  }, [])
+  const userEmail = localStorage.getItem('userEmail');
+  const pid=localStorage.getItem("pid");
+  console.log(userEmail,pid);
 
 
-
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-
-
-  // State for selected checkboxes
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [resStatus,setResponse]=useState("");
+
+
+  //get all the individual events and display on the page 
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.post("/api/events/getSoloEvents");
+      setEvents(response.data);
+
+      console.log(response.data)
+
+    } catch (error) {
+      setError("Failed to fetch events");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    //load individual elements and display on the page
+    fetchEvents();
+  }, []);
+
+
+
+
 
 
   const handleCheckboxChange = (event) => {
     const value = event.target.value;
-    setSelectedOptions((prevSelected) => {
-      if (prevSelected.includes(value)) {
-        return prevSelected.filter((option) => option !== value); // Uncheck
-      } else {
-        return [...prevSelected, value]; // Check
-      }
-    });
+    setSelectedOptions((prevSelected) =>
+      prevSelected.includes(value)
+        ? prevSelected.filter((option) => option !== value)
+        : [...prevSelected, value]
+    );
   };
+
+
+  //save individual events to  database
+  async function saveIndividualEvents() {
+    try{
+
+      const response=await axios.post("/api/events/saveSoloEvents",{
+        data:selectedOptions
+      },{withCredentials:true})
+      console.log(response.data)
+      setResponse(response.data.message);
+      alert("Events saved successfully");
+      
+    }
+    catch(error){
+      console.log(error)
+      setResponse(error.response.data.message)
+
+    }
+  }
+
+
+  const handleSubmit =async () => {
+    await saveIndividualEvents();
+   
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="wrapper">
@@ -48,44 +89,37 @@ const SoloEvents = () => {
         <tbody>
           <tr>
             <td>Email</td>
-            <td>root.avanti@gmail.com</td>
+            <td>{userEmail}</td>
           </tr>
           <tr>
             <td>PID</td>
-            <td>Pxyz</td>
+            <td>{pid}</td>
           </tr>
         </tbody>
       </table>
       <div className="eventsSection">
         <table>
           <tbody>
-            {Array.from({ length: 5 }).map((_, rowIndex) => (
-              <tr key={rowIndex}>
+            {events.map((event, index) => (
+              <tr key={index}>
                 <td>
                   <input
                     type="checkbox"
-                    id={`option${rowIndex * 2 + 1}`}
+                    id={`option${index}`}
                     name="options"
-                    value={`Option ${rowIndex * 2 + 1}`}
+                    value={event.event} // Unique value
+                    checked={selectedOptions.includes(event.event)} // Check against the unique value
+                    onChange={handleCheckboxChange}
                   />
-                  <label htmlFor={`option${rowIndex * 2 + 1}`}>Option {rowIndex * 2 + 1}</label>
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    id={`option${rowIndex * 2 + 2}`}
-                    name="options"
-                    value={`Option ${rowIndex * 2 + 2}`}
-                  />
-                  <label htmlFor={`option${rowIndex * 2 + 2}`}>Option {rowIndex * 2 + 2}</label>
+                  <label htmlFor={`option${index}`}>{event.event}</label>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="errorStatus">Successfully Registered!</div>
-      <button onClick={() => alert('Successfully Registered!')}>Save</button>
+      <div className="errorStatus">{resStatus}</div>
+      <button onClick={handleSubmit}>Save</button>
     </div>
   );
 };

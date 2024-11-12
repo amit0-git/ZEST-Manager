@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken")
 const OTP = require("../model/otp")
 const USER = require("../model/user")
 const STUDENT = require("../model/studentRegister")
-const COUNT=require("../model/count")
+const COUNT = require("../model/count")
 
 //dend otp if time is more than 5 min
 //nd no record for otp exists
@@ -42,42 +42,43 @@ async function canSendOtp(email) {
 
 ///function to send data to client using email
 
-exports.getData=async (req,res)=>{
-    try{
-        const email=req.body.email;
-        console.log("email",email);
+exports.getData = async (req, res) => {
+    try {
+
+        const email = req.body.email;
+        console.log("email", email);
 
         //verify email with token email
-        const token=req.cookies.token;
-    
-        if (!token){
-            return res.status(401).json({message:"Unauthorized"})
+        const token = req.cookies.token;
+
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
-        const decoded=await jwt.verify(token,process.env.SECRET_KEY);
+        const decoded = await jwt.verify(token, process.env.SECRET_KEY);
 
-        const emailToken=decoded.email;
+        const emailToken = decoded.email;
 
 
-        console.log(emailToken,email);
-        
-        if (emailToken!==email){
-            return res.status(401).json({message:"Unauthorized"})
+        console.log(emailToken, email);
+
+        if (emailToken !== email) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
 
         //get data
-        const data=await STUDENT.findOne({email:email});
-        
-        if (!data){
-            return res.status(404).json({message:"Student not found"})
+        const data = await STUDENT.findOne({ email: email });
+
+        if (!data) {
+            return res.status(404).json({ message: "Student not found" })
         }
 
-        return res.status(200).json({data:data});
+        return res.status(200).json({ data: data });
 
-        
+
 
     }
 
-    catch(error){
+    catch (error) {
         console.log(error);
 
     }
@@ -228,7 +229,7 @@ exports.login = async (req, res) => {
     try {
 
 
-        console.log("ck token:",req.cookies.token)
+        console.log("ck token:", req.cookies.token)
 
 
         const { email, password, captchaValue } = req.body;
@@ -263,12 +264,12 @@ exports.login = async (req, res) => {
 
         // Send token in an HTTP-only cookie
         res.cookie('token', token, {
-            httpOnly:false, // Prevents access to cookie from JS (for security)
+            httpOnly: false, // Prevents access to cookie from JS (for security)
             secure: false, // Use 'true' in production (HTTPS)
-          
+
             maxAge: 3600 * 1000 // 1 hour expiration
         });
-        
+
         res.status(200).json({ token, email: user.email });
 
 
@@ -317,11 +318,12 @@ exports.register = async (req, res) => {
         const ck = req.cookies.token;
 
         console.log("cookie", ck)
+
         //verify token
-        if (!ck){
-          //return login status
-          return res.status(401).json({ message: 'Unauthorized' });
-           
+        if (!ck) {
+            //return login status
+            return res.status(401).json({ message: 'Unauthorized' });
+
         }
         //get last count of count collection
         const lastCount = await getLastCount();
@@ -329,9 +331,9 @@ exports.register = async (req, res) => {
 
         const pid = "P" + Number(lastCount + 1)
         //trim data to remove spaces
-        const decoded =  jwt.verify(ck, process.env.SECRET_KEY);
+        const decoded = jwt.verify(ck, process.env.SECRET_KEY);
 
-        const email=  decoded.email;
+        const email = decoded.email;
         const rollno = req.body.rollno.trim()
         const name = req.body.name.trim()
         const phone = req.body.phone.trim()
@@ -342,17 +344,50 @@ exports.register = async (req, res) => {
         const year = req.body.year
 
 
-        console.log(email,pid, rollno, name, phone, address, college, branch, year);
+        console.log(email, pid, rollno, name, phone, address, college, branch, year);
 
 
-        //chk user already registered
+        //chk user already registered then update the user 
+
         const alreadyRegistered = await STUDENT.findOne({ email: email })
         if (alreadyRegistered) {
-            return res.status(400).json({ message: 'User already registered.' });
+
+            //if the user is already registered then update the student
+            const updatedStudent = await STUDENT.findOneAndUpdate(
+                { email: email }, // Filter by email
+                {
+                    rollno: rollno,
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    college: college,
+                    branch: branch,
+                    year: year
+                },
+                { new: true, upsert: true } // Return the updated document and create if it doesn't exist
+            );
+
+            // Check if the update was successful
+            if (updatedStudent) {
+                console.log("Updated student:", updatedStudent);
+                return res.status(200).json({ message: 'User  updated successfully.', data: updatedStudent });
+            } else {
+                return res.status(400).json({ message: 'Failed to update user.' });
+            }
         }
+
+        
+
+
+        //if the use ris not registered then save user in the database
+        
+
+
+
+
         //create new user
         const student = new STUDENT({
-            pid:pid,
+            pid: pid,
             email: email,
             rollno: rollno,
             name: name,
@@ -365,7 +400,8 @@ exports.register = async (req, res) => {
         })
         //save user to db
         await student.save()
-        res.status(201).json({ message: 'User created successfully.',data:student });
+        console.log(student);
+        res.status(201).json({ message: 'User created successfully.', data: student });
 
 
     }

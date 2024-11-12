@@ -1,21 +1,57 @@
-import React from 'react';
-import styles from "./participationDash.module.css"
-
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Make sure to import axios for API calls
+import styles from "./participationDash.module.css";
 
 const ParticipationSummary = () => {
-  // Sample data for demonstration
-  const individualEvents = [
-    { pid: 'P123', event: 'Solo Dance' },
-    { pid: 'P123', event: 'Solo Dance' },
-    { pid: 'P123', event: 'Solo Dance' },
-    { pid: 'P123', event: 'Solo Dance' },
-  ];
+  const [individualEvents, setIndividualEvents] = useState([]); // State for individual event participation
+  const [teamEvents, setTeamEvents] = useState([]); // State for team event participation
 
-  const teamEvents = [
-    { tid: 'T123', event: 'Group Dance', teamName: 'Michel', members: 'P123, P145, P46' },
-    { tid: 'T124', event: 'Group Dance', teamName: 'Michel', members: 'P123, P145, P46' },
-    { tid: 'T125', event: 'Group Dance', teamName: 'Michel', members: 'P123, P145, P46' },
-  ];
+  
+  //get the email from the localstorage 
+  const email=localStorage.getItem("userEmail");
+  const pid=localStorage.getItem("pid");
+
+
+  // Fetch individual event participation
+  useEffect(() => {
+
+
+    const fetchIndividualEvents = async () => {
+      try {
+        const response = await axios.post('/api/events/individualParticipation', {email:email},{ withCredentials: true });
+        console.log("response:",response.data.data.events)
+        //set the events array from  the response
+  
+        setIndividualEvents(response.data.data.events); // Assuming response.data is an array of individual events
+
+      } catch (error) {
+        console.error('Error fetching individual events:', error);
+      }
+    };
+
+
+
+
+
+    fetchIndividualEvents();
+  }, []); // Empty dependency array means this runs once on component mount
+
+  // Fetch team event participation
+  useEffect(() => {
+    const fetchTeamEvents = async () => {
+      try {
+        const response = await axios.post('/api/events/teamParticipation', {email:email},{ withCredentials: true });
+        console.log(response.data.data)
+       
+        setTeamEvents(response.data.data); // Assuming response.data is an array of team events
+
+      } catch (error) {
+        console.error('Error fetching team events:', error);
+      }
+    };
+
+    fetchTeamEvents();
+  }, []); // Empty dependency array means this runs once on component mount
 
   return (
     <div className="participationWrapper">
@@ -31,10 +67,9 @@ const ParticipationSummary = () => {
             </tr>
           </thead>
           <tbody>
-            {individualEvents.map((item, index) => (
+            {individualEvents.map((item,index) => (
               <tr key={index}>
-                <td>{item.pid}</td>
-                <td>{item.event}</td>
+                <td>{pid}</td><td>{item}</td>
               </tr>
             ))}
           </tbody>
@@ -58,10 +93,10 @@ const ParticipationSummary = () => {
               <tr key={index}>
                 <td>{item.tid}</td>
                 <td>{item.event}</td>
-                <td>{item.teamName}</td>
-                <td>{item.members}</td>
+                <td>{item.name}</td>
+                <td>{item.actual_members.join(', ')}</td> {/* Assuming members is an array */}
                 <td>
-                  <button>X</button>
+                  <button onClick={() => handleDelete(item.tid)}>X</button>
                 </td>
               </tr>
             ))}

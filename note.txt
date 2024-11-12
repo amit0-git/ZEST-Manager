@@ -1,1 +1,7 @@
 proxy in frontend
+localstorage and cookie sett
+limit button click
+mongodb client close
+add login chk in every router and request
+
+//total participation verification in the registeration

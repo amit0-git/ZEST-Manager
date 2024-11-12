@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import styles from "./profile.module.css";
+import { Link, useNavigate } from "react-router-dom";
+
 
 const UserProfile = () => {
   const userEmail = localStorage.getItem('userEmail');
   console.log(userEmail);
+
+
+
+  const navigate = useNavigate();
 
   const [data, setData] = useState({
     email: "",
@@ -62,6 +68,28 @@ const UserProfile = () => {
     return <div>{error}</div>; // Display error message
   }
 
+
+
+  //button logic
+  const handleIndividualEvent = () => {
+    // Logic for Individual Event button
+    navigate('/individualEvent')
+    console.log('Individual Event button clicked');
+  };
+
+  const handleTeamEvent = () => {
+    // Logic for Team Event button
+    navigate('/teamEvent')
+    console.log('Team Event button clicked');
+  };
+
+  const handleEditEvent = () => {
+    // Logic for Team Event button
+    navigate('/studentRegister')
+    console.log('Studentedit  button clicked');
+  };
+
+
   return (
     <div className={styles.wrapper}>
       <h1>Your PID is {data.pid || "Not Available"}</h1>
@@ -107,9 +135,9 @@ const UserProfile = () => {
       <h1>Participate In</h1>
 
       <div className={styles.buttonWrap}>
-        <button>Edit</button>
-        <button>Individual Event</button>
-        <button>Team Event</button>
+        <button onClick={handleEditEvent}>Edit</button>
+        <button onClick={handleIndividualEvent}>Individual Event</button>
+        <button onClick={handleTeamEvent}>Team Event</button>
       </div>
     </div>
   );

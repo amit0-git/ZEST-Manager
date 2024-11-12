@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from "./student.module.css"
 import axios from "axios";
 import { Link, useNavigate } from 'react-router-dom';
-import cookieParser from 'cookie-parser';
+
 
 function studentRegister() {
 
+    //register button update 
+    const [reg,setReg]=useState("Register")
 
     const [formData, setFormData] = useState({
 
@@ -17,6 +19,57 @@ function studentRegister() {
         branchSelect: 'CSE', // Default value
         yearSelect: '1', // Default value
     });
+
+
+    //get the editable data from the form if the use is logged in 
+    //i.e email is in the localstorage 
+
+
+
+    async function getUserData() {
+        try {
+
+            const email = localStorage.getItem("userEmail")
+            if (email) {
+                const response = await axios.post("/api/users/getData", {
+                    email: email
+                }, { withCredentials: true });
+
+                console.log("edit data", response.data.data);
+
+                // Assuming the response data structure matches the formData structure
+                const userData = response.data.data;
+
+                // Update state with the fetched user data
+                setFormData(prevState => ({
+                    ...prevState,
+                    rollno: userData.rollno || '',
+                    name: userData.name || '',
+                    phone: userData.phone || '',
+                    address: userData.address || '',
+                    collegeSelect: userData.college || 'SRMS CET',
+                    branchSelect: userData.branch || 'CSE',
+                    yearSelect: userData.year || '1',
+                }));
+
+                //set the reg button to update
+                setReg("Update")
+
+            }
+            
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+
+    useEffect(() => {
+        getUserData();
+
+    }, [])
+
+
+
 
     const [message, setMessage] = useState('');
 
@@ -71,7 +124,9 @@ function studentRegister() {
 
 
             //store email in localstorage
-            console.log(registerd.data.email)
+            console.log(registerd.data)
+            localStorage.setItem("pid", registerd.data.pid);
+
             localStorage.setItem('userEmail', registerd.data.email);
 
 
@@ -181,7 +236,7 @@ function studentRegister() {
                     </select>
                     <br />
 
-                    <button type="submit">Register</button>
+                    <button type="submit">{reg}</button>
                 </form>
 
                 {/* response status */}

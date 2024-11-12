@@ -10,7 +10,7 @@ import UserProfile from './components/user/profile.jsx'
 
 import TeamEvent from "./components/user/teamEvent.jsx"
 import ParticipationSummary from './components/user/participationDash.jsx'
-
+import Invitation from "./components/user/invitation.jsx"
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 function App() {
 
@@ -42,6 +42,10 @@ function App() {
   },{
     path:"/participation",
     element:<ParticipationSummary/>
+  }
+  ,{
+    path:"/invitation",
+    element:<Invitation/>
   }
   ])
 
