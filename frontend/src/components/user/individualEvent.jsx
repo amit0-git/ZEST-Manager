@@ -1,31 +1,30 @@
+
+
+
 import styles from "./individualEvent.module.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 
 const SoloEvents = () => {
-
-
-  const userEmail = localStorage.getItem('userEmail');
-  const pid = localStorage.getItem("pid");
-  console.log(userEmail, pid);
-
+  
+  
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [resStatus, setResponse] = useState("");
+  const [pid,setPid]=useState("")
+  const [email,setEmail]=useState("")
 
-
-  //get all the individual events and display on the page 
+  // Fetch all the individual events and display them
   const fetchEvents = async () => {
     try {
       const response = await axios.post("/api/events/getSoloEvents");
       setEvents(response.data);
-
-      console.log(response.data)
-
+      console.log(response.data);
     } catch (error) {
       setError("Failed to fetch events");
     } finally {
@@ -33,46 +32,44 @@ const SoloEvents = () => {
     }
   };
 
-
   useEffect(() => {
-    //load individual elements and display on the page
     fetchEvents();
   }, []);
 
-
-  //get solo events and fill the checkbox for participated events 
-
-
+  // Get participated events and set checkboxes for already participated events
   async function getParticipatedEvents() {
     try {
-
-      const email = localStorage.getItem("userEmail");
-
+      
       const response = await axios.post("/api/events/individualParticipation", {
-        email: email
-      }, {
         withCredentials: true
-      })
-
-      console.log("already participated:", response.data.data.events)
-      //set the checkbox if the user has already participated in the event
-      setSelectedOptions(response.data.data.events);
-
-    }
-    catch (error) {
-      console.log(error)
+      });
+     
+      setEmail(response.data.data.email);
+      setPid(response.data.pid.pid)
+      console.log("already participated:", response.data.data.events);
+      setSelectedOptions(response.data.data.events); // Set checkbox if the user already participated
+    } catch (error) {
+      console.log(error);
     }
   }
 
   useEffect(() => {
-    getParticipatedEvents()
-  }, [])
+    getParticipatedEvents();
+  }, []);
 
+    //clear messgae after 10 sec
 
+    useEffect(() => {
+      let timer;
+      if (resStatus) {
+        timer = setTimeout(() => {
+          setResponse('');
+        }, 10000); // 20 seconds
+      }
+      return () => clearTimeout(timer); // Cleanup the timer on unmount or when errorMessage changes
+    }, [resStatus]);
 
-
-
-
+  // Handle checkbox change
   const handleCheckboxChange = (event) => {
     const value = event.target.value;
     setSelectedOptions((prevSelected) =>
@@ -82,43 +79,43 @@ const SoloEvents = () => {
     );
   };
 
-
-  //save individual events to  database
+  // Save selected events to the database
   async function saveIndividualEvents() {
     try {
-
       const response = await axios.post("/api/events/saveSoloEvents", {
         data: selectedOptions
-      }, { withCredentials: true })
-      console.log(response.data)
+      }, { withCredentials: true });
+      console.log(response.data);
       setResponse(response.data.message);
       alert("Events saved successfully");
-
-    }
-    catch (error) {
-      console.log(error)
-      setResponse(error.response.data.message)
-
+    } catch (error) {
+      console.log(error);
+      setResponse(error.response.data.message);
     }
   }
 
-
   const handleSubmit = async () => {
     await saveIndividualEvents();
-
   };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
+
+
+
   return (
-    <div className="wrapper">
-      <h1>Solo Events</h1>
-      <table>
+    <div className={styles.wrapper}>
+        <Helmet>
+                <title>Solo Events</title>
+              
+            </Helmet>
+      <h1 className={styles.heading}>Solo Events</h1>
+      <table className={styles.infoTable}>
         <tbody>
           <tr>
             <td>Email</td>
-            <td>{userEmail}</td>
+            <td>{email}</td>
           </tr>
           <tr>
             <td>PID</td>
@@ -126,31 +123,35 @@ const SoloEvents = () => {
           </tr>
         </tbody>
       </table>
-      <div className="eventsSection">
-        <table>
-          <tbody>
-            {events.map((event, index) => (
-              <tr key={index}>
-                <td>
-                  <input
-                    type="checkbox"
-                    id={`option${index}`}
-                    name="options"
-                    value={event.event} // Unique value
-                    checked={selectedOptions.includes(event.event)} // Check against the unique value
-                    onChange={handleCheckboxChange}
-                  />
-                  <label htmlFor={`option${index}`}>{event.event}</label>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className={styles.eventsSection}>
+        <div className={styles.cardsWrapper}>
+          {events.map((event, index) => (
+            <div key={index} className={styles.card}>
+              <input
+                type="checkbox"
+                id={`option${index}`}
+                name="options"
+                value={event.event}
+                checked={selectedOptions.includes(event.event)}
+                onChange={handleCheckboxChange}
+                className={styles.checkbox}
+              />
+              <label htmlFor={`option${index}`} className={styles.label}>
+                {event.event}
+              </label>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="errorStatus">{resStatus}</div>
-      <button onClick={handleSubmit}>Save</button>
+      <div className={styles.errorStatus}>{resStatus}</div>
+      <button className={styles.submitButton} onClick={handleSubmit}>
+        Save
+      </button>
     </div>
   );
 };
 
 export default SoloEvents;
+
+
+

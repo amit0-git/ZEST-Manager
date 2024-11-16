@@ -11,10 +11,21 @@ add login chk in every router and request
 
 add loggin in the project
 on errro return the response
-trim space in input
+trim space in input --done
 
-team event add pids then only create team
+team event add pids then only create team   --done
 
 same team name  -- done 
 
 add logout  
+
+
+useEffect redirect in react
+
+delete team option for admin 
+adding self pid in the team w/o confirmation
+
+localstorage not opening on different devices 
+remove boldness from font and make it small
+add resident type in form
+avoid localstorage  --done

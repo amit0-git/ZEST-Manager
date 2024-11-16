@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import styles from "./student.module.css"
 import axios from "axios";
+import { Helmet } from 'react-helmet';
 import { Link, useNavigate } from 'react-router-dom';
 
 
 function studentRegister() {
 
     //register button update 
-    const [reg,setReg]=useState("Register")
+    const [reg, setReg] = useState("Register")
 
     const [formData, setFormData] = useState({
 
@@ -56,7 +57,7 @@ function studentRegister() {
                 setReg("Update")
 
             }
-            
+
         }
         catch (error) {
             console.log(error)
@@ -86,10 +87,10 @@ function studentRegister() {
         try {
             const response = await axios.post("api/users/register", {
                 // email:"sample@gmail.com",
-                rollno: formData.rollno,
-                name: formData.name,
-                phone: formData.phone,
-                address: formData.address,
+                rollno: formData.rollno.trim(),
+                name: formData.name.trim(),
+                phone: formData.phone.trim(),
+                address: formData.address.trim(),
                 college: formData.collegeSelect,
                 branch: formData.branchSelect,
                 year: formData.yearSelect
@@ -137,10 +138,14 @@ function studentRegister() {
     };
     return (
         <div id={styles.wrapper}>
+            <Helmet>
+                <title>Personal Details</title>
 
+            </Helmet>
+           
             <div id={styles.left}>
 
-                <h1>User Registration</h1>
+            <div className={styles.formHead}>User Registration</div>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="rollno">Roll No/Reg. No</label>
                     <input

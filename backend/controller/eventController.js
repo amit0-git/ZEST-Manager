@@ -478,9 +478,19 @@ exports.getInvitation = async (req, res) => {
     try {
         //security handle latr 
 
-        const email = req.body.email;
-        console.log(email)
-        const data = await INVITATION.find({ email: email });
+        //verify email with token email
+        const token = req.cookies.token;
+
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+        const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+
+        const emailToken = decoded.email;
+
+        console.log(emailToken)
+        const data = await INVITATION.find({ email: emailToken });
+
         if (!data) {
             return res.status(404).json({ message: "No Invitation Found!" });
         }
@@ -584,15 +594,27 @@ exports.individualParticipation = async (req, res) => {
 
 
         //verification logic 
-        const email = req.body.email
+         //verify email with token email
+         const token = req.cookies.token;
 
-        const response = await INDIVIDUAL.findOne({ email: email });
+         if (!token) {
+             return res.status(401).json({ message: "Unauthorized" })
+         }
+         const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+ 
+         const emailToken = decoded.email;
+
+        const response = await INDIVIDUAL.findOne({ email: emailToken });
+
         if (!response) {
             return res.status(404).json({ message: 'No individual found with the provided email.' });
         }
-        console.log(response);
+
+        //get the pid from the STUDENT table using email
+        const pid = await STUDENT.findOne({ email: emailToken }).select('pid')
+       
         //retrn the response
-        res.status(200).json({ data: response })
+        res.status(200).json({ data: response,pid:pid })
     }
     catch (error) {
         console.log(error)

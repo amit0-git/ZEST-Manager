@@ -1,15 +1,18 @@
+
+
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
-import styles from "./profile.module.css";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from 'react-helmet';
+import styles from "./profile.module.css"; // Custom CSS styles
+
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEnvelope, faIdCard, faSignature, faPhone, faAddressBook, faGraduationCap, faCodeBranch, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 
 
 const UserProfile = () => {
-  const userEmail = localStorage.getItem('userEmail');
-  console.log(userEmail);
-
-
-
+  
   const navigate = useNavigate();
 
   const [data, setData] = useState({
@@ -27,117 +30,114 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true); // To manage loading state
   const [error, setError] = useState(null); // To manage error state
 
-  const fetchData = async (email) => {
+  const fetchData = async () => {
     try {
-      const response = await axios.post("/api/users/getData", { email: email }, {
+      const response = await axios.post("/api/users/getData", {
         withCredentials: true
       });
-
-
-      console.log(response.data);
       setData(response.data.data);
-
-
     } catch (error) {
 
-
-      console.log(error);
-      setError("Failed to fetch user data."); // Set error message
-
+      navigate("/studentRegister");
+      setError("Failed to fetch user data.");
 
     } finally {
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Fetch data from backend
-    if (userEmail) {
-      fetchData(userEmail);
-    } else {
-      setLoading(false); // If no email, stop loading
-      setError("No email found in localStorage."); // Set error message
-    }
-  }, [userEmail]); // Dependency array includes userEmail
+    
+      fetchData();
+  
+      
+    
+  }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // Loading state
+    return <div className={styles.loader}>Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>; // Display error message
+    return <div className={styles.error}>{error}</div>;
   }
 
-
-
-  //button logic
+  // Button click handlers
   const handleIndividualEvent = () => {
-    // Logic for Individual Event button
-    navigate('/individualEvent')
-    console.log('Individual Event button clicked');
+    navigate('/individualEvent');
   };
 
   const handleTeamEvent = () => {
-    // Logic for Team Event button
-    navigate('/teamEvent')
-    console.log('Team Event button clicked');
+    navigate('/teamEvent');
   };
 
   const handleEditEvent = () => {
-    // Logic for Team Event button
-    navigate('/studentRegister')
-    console.log('Studentedit  button clicked');
+    navigate('/studentRegister');
   };
 
-
   return (
+
+
     <div className={styles.wrapper}>
-      <h1>Your PID is {data.pid || "Not Available"}</h1>
-      <div className={styles.tableWrapper}>
+        <Helmet>
+                <title>Profile</title>
+              
+            </Helmet>
+      <div className={styles.profileHeader}>
+        Your PID: {data.pid || "Not Available"}
+      </div>
+
+
+      <div className={styles.userProfile}>
+        User Profile
+      </div>
+      <div className={styles.profileTable}>
+        <img src="/assets/wheel.png" alt="" srcset="" className={styles.wheel} />
         <table>
           <tbody>
-            <tr>
-              <td>Email</td>
+            <tr className={styles.table_cell}>
+              <td>  <FontAwesomeIcon className={styles.icon} icon={faEnvelope} />Email</td>
               <td>{data.email || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Roll No</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faIdCard} />Roll No</td>
               <td>{data.rollno || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Name</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faSignature} />Name</td>
               <td>{data.name || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Phone</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faPhone} />Phone</td>
               <td>{data.phone || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Address</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faAddressBook} />Address</td>
               <td>{data.address || "Not Available"}</td>
             </tr>
             <tr>
-              <td>College</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faGraduationCap} />College</td>
               <td>{data.college || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Branch</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faCodeBranch} />Branch</td>
               <td>{data.branch || "Not Available"}</td>
             </tr>
             <tr>
-              <td>Year</td>
+              <td><FontAwesomeIcon className={styles.icon} icon={faCalendarDays} />Year</td>
               <td>{data.year || "Not Available"}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h1>Participate In</h1>
-
-      <div className={styles.buttonWrap}>
-        <button onClick={handleEditEvent}>Edit</button>
-        <button onClick={handleIndividualEvent}>Individual Event</button>
-        <button onClick={handleTeamEvent}>Team Event</button>
+      <div className={styles.participateSection}>
+        <h2>Participate In</h2>
+        <div className={styles.buttonWrap}>
+          <button onClick={handleEditEvent} className={styles.editBtn}>Edit</button>
+          <button onClick={handleIndividualEvent} className={styles.individualBtn}>Individual Event</button>
+          <button onClick={handleTeamEvent} className={styles.teamBtn}>Team Event</button>
+        </div>
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
 import styles from "./userLogin.module.css"
-
+import { Helmet } from 'react-helmet';
 function UserSignup() {
 
-    const [message, setMessage] = useState('Logged In');
+    const [message, setMessage] = useState('');
 
     const [otpStatus, setOtpStatus] = useState(true);
 
@@ -17,11 +17,24 @@ function UserSignup() {
 
 
 
-     // Function to handle CAPTCHA change
-     const onCaptchaChange = (value) => {
+    // Function to handle CAPTCHA change
+    const onCaptchaChange = (value) => {
         setCaptchaValue(value); // Update captcha value state
         console.log("Captcha value:", value);
     };
+
+
+    //clear messgae after 10 sec
+
+    useEffect(() => {
+        let timer;
+        if (message) {
+            timer = setTimeout(() => {
+                setMessage('');
+            }, 10000); // 20 seconds
+        }
+        return () => clearTimeout(timer); // Cleanup the timer on unmount or when errorMessage changes
+    }, [message]);
 
 
     //fn to signup user
@@ -76,7 +89,7 @@ function UserSignup() {
             console.log("OTP Send logic", otpStatus)
 
             const sendOtp1 = await sendOtp(email);
-           
+
 
             if (sendOtp1) {
 
@@ -104,24 +117,29 @@ function UserSignup() {
 
     return (
 
+
         <div id={styles.wrapper}>
+            <Helmet>
+                <title>Sign Up</title>
+               
+            </Helmet>
             <div id={styles.formWrapper}>
                 <img src="/assets/user.png" alt="" id={styles.user} />
                 <h1>Create Account</h1>
 
                 <form onSubmit={handleLogin}>
                     <label htmlFor="username">Email</label>
-                    <input type="email" name="email" placeholder="Email" required onChange={(e) => setEmail(e.target.value)} /><br />
+                    <input type="email" name="email" placeholder="Email" required onChange={(e) => setEmail(e.target.value)} />
 
                     <label htmlFor="password">Password</label>
-                    <input type="password" name="password" placeholder="Password" required onChange={(e) => setPassword(e.target.value)} /><br />
+                    <input type="password" name="password" placeholder="Password" required onChange={(e) => setPassword(e.target.value)} />
 
                     <label htmlFor="password">Confirm Password</label>
-                    <input type="password" name="password" placeholder="Confirm Password" required onChange={(e) => setConfirmPassword(e.target.value)} /><br />
+                    <input type="password" name="password" placeholder="Confirm Password" required onChange={(e) => setConfirmPassword(e.target.value)} />
 
                     {
 
-                        otpStatus ? "" : <><label htmlFor="otp">Enter OTP</label><input type="number" name="otp" placeholder="Enter OTP" required onChange={(e) => setOtp(e.target.value)} /><br /></>
+                        otpStatus ? "" : <><label htmlFor="otp">Enter OTP</label><input type="number" name="otp" placeholder="Enter OTP" required onChange={(e) => setOtp(e.target.value)} /></>
                     }
 
 

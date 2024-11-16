@@ -61,12 +61,10 @@ exports.getData = async (req, res) => {
 
         console.log(emailToken, email);
 
-        if (emailToken !== email) {
-            return res.status(401).json({ message: "Unauthorized" })
-        }
+      
 
         //get data
-        const data = await STUDENT.findOne({ email: email });
+        const data = await STUDENT.findOne({ email: emailToken });
 
         if (!data) {
             return res.status(404).json({ message: "Student not found" })

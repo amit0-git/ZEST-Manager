@@ -1,107 +1,123 @@
+
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Make sure to import axios for API calls
-import styles from "./participationDash.module.css";
+import styles from './participationDash.module.css';
+import { Helmet } from 'react-helmet';
+
 
 const ParticipationSummary = () => {
   const [individualEvents, setIndividualEvents] = useState([]); // State for individual event participation
   const [teamEvents, setTeamEvents] = useState([]); // State for team event participation
 
-  
-  //get the email from the localstorage 
-  const email=localStorage.getItem("userEmail");
-  const pid=localStorage.getItem("pid");
-
+  const email = localStorage.getItem("userEmail");
+  const pid = localStorage.getItem("pid");
 
   // Fetch individual event participation
   useEffect(() => {
-
-
     const fetchIndividualEvents = async () => {
       try {
-        const response = await axios.post('/api/events/individualParticipation', {email:email},{ withCredentials: true });
-        console.log("response:",response.data.data.events)
-        //set the events array from  the response
-  
+        const response = await axios.post('/api/events/individualParticipation', { email }, { withCredentials: true });
         setIndividualEvents(response.data.data.events); // Assuming response.data is an array of individual events
-
       } catch (error) {
         console.error('Error fetching individual events:', error);
       }
     };
 
-
-
-
-
     fetchIndividualEvents();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, [email]); // Fetch data when the email changes
 
   // Fetch team event participation
   useEffect(() => {
     const fetchTeamEvents = async () => {
       try {
-        const response = await axios.post('/api/events/teamParticipation', {email:email},{ withCredentials: true });
-        console.log(response.data.data)
-       
+        const response = await axios.post('/api/events/teamParticipation', { email }, { withCredentials: true });
         setTeamEvents(response.data.data); // Assuming response.data is an array of team events
-
       } catch (error) {
         console.error('Error fetching team events:', error);
       }
     };
 
     fetchTeamEvents();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, [email]); // Fetch data when the email changes
 
   return (
-    <div className="participationWrapper">
-      <h1>Total Participation</h1>
+    <div className={styles.participationWrapper}>
+        <Helmet>
+                <title>Participation</title>
+              
+            </Helmet>
+      <h1 className={styles.title}>Total Participation</h1>
 
-      <div className="individual">
-        <h2>Individual Event</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>PID</th>
-              <th>Event</th>
-            </tr>
-          </thead>
-          <tbody>
-            {individualEvents.map((item,index) => (
-              <tr key={index}>
-                <td>{pid}</td><td>{item}</td>
+      {/* Individual Events Section */}
+
+      <div className={styles.cardTitle}>Individual Event</div>
+      <div className={styles.cardWrapper}>
+        <div className={styles.card}>
+
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Event</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {individualEvents.length > 0 ? (
+                individualEvents.map((item, index) => (
+                  <tr key={index}>
+                    <td>{pid}</td>
+                    <td>{item}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="2">No individual events found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="team">
-        <h2>Team Event</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>TID</th>
-              <th>Event</th>
-              <th>Team Name</th>
-              <th>Members</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teamEvents.map((item, index) => (
-              <tr key={index}>
-                <td>{item.tid}</td>
-                <td>{item.event}</td>
-                <td>{item.name}</td>
-                <td>{item.actual_members.join(', ')}</td> {/* Assuming members is an array */}
-                <td>
-                  <button onClick={() => handleDelete(item.tid)}>X</button>
-                </td>
+      {/* Team Events Section */}
+      <div className={styles.cardTitle}>Team Event</div>
+      <div className={styles.cardWrapper}>
+        <div className={styles.card}>
+         
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>TID</th>
+                <th>Event</th>
+                <th>Team Name</th>
+                <th>Members</th>
+                <th>Delete</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {teamEvents.length > 0 ? (
+                teamEvents.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.tid}</td>
+                    <td>{item.event}</td>
+                    <td>{item.name}</td>
+                    <td>{item.actual_members.join(', ')}</td>
+                    <td>
+                      <button className={styles.deleteBtn} onClick={() => handleDelete(item.tid)}>
+                        X
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">No team events found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

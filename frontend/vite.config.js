@@ -11,5 +11,15 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/api/, ''), // Optional: rewrite path if needed
             },
         },
-    },
+    }
+   
 });
+
+// export default defineConfig({
+//     plugins: [react()],
+//     resolve: {
+//       alias: {
+//         '@': '/src',
+//       },
+//     },
+//   });
