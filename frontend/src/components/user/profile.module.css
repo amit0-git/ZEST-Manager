@@ -1,3 +1,13 @@
+
+.error{
+  text-align: center;
+  margin-top: 20px;
+
+}
+.loader{
+  text-align: center;
+  margin-top: 20px;
+}
 /* Wrapper for the profile */
 .wrapper {
   width: 50%;
@@ -100,7 +110,9 @@
 
 .profileTable td:nth-child(2) {
   padding-left: 20px;
-
+font-weight: 600;
+color: rgb(37, 35, 35);
+backdrop-filter: blur(1px);
 
 
 }
@@ -147,6 +159,9 @@
 
 .buttonWrap button:hover {
   opacity: 0.8;
+  background-color: rgb(255, 118, 6);
+  color:white;
+  font-weight: bold;
 }
 
 .buttonWrap .editBtn {
@@ -154,6 +169,7 @@
   color: rgb(255, 118, 6);
   border: 2px solid orange;
   border-radius: 50px;
+  font-weight: bold;
 }
 
 .buttonWrap .individualBtn {
@@ -161,6 +177,7 @@
   color: rgb(255, 118, 6);
   border: 2px solid orange;
   border-radius: 50px;
+  font-weight: bold;
 }
 
 .buttonWrap .teamBtn {
@@ -168,6 +185,7 @@
   color: rgb(255, 118, 6);
   border: 2px solid orange;
   border-radius: 50px;
+  font-weight: bold;
 }
 
 /* Media Queries for Responsiveness */

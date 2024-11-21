@@ -9,23 +9,35 @@ add login chk in every router and request
 //team event max participation   --done
 
 
-add loggin in the project
-on errro return the response
+add logger  in the project   --done
+on errro return the response   --done
 trim space in input --done
 
 team event add pids then only create team   --done
 
 same team name  -- done 
 
-add logout  
+add logout  ---done
 
 
-useEffect redirect in react
+useEffect redirect in react    --done
 
-delete team option for admin 
+delete team option for admin      --done
 adding self pid in the team w/o confirmation
 
 localstorage not opening on different devices 
 remove boldness from font and make it small
 add resident type in form
 avoid localstorage  --done
+
+
+on successsigup redto login    --done
+
+srms and other college limit
+
+
+mongodb connection close
+
+cloudfare waf
+
+

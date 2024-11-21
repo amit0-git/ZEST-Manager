@@ -18,7 +18,8 @@ const registerSchema = new mongoose.Schema({
     },
     rollno: {
         type: String,
-        required: true
+        required: true,
+        unique:true
     },
     name: {
         type: String,

@@ -1,5 +1,11 @@
 
-
+.note{
+  font-size: 12px;
+}
+.note span{
+  text-decoration: underline;
+  font-weight: bold;
+}
 /* Main Wrapper */
 .teamWrapper {
     width: 60%;

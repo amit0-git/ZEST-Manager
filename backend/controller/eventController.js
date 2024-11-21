@@ -11,7 +11,7 @@ const EVENT = require("../model/events")
 const INDIVIDUAL = require("../model/individualEvent")
 const TEAM = require("../model/teamEvent")
 const INVITATION = require("../model/invitation");
-const invitation = require("../model/invitation");
+const TEAM_BACKUP = require("../model/teamBackup");
 
 
 
@@ -135,14 +135,9 @@ async function maxEventParticipation(email, sEvent) {
 
 exports.saveSoloEvents = async (req, res) => {
     try {
-        //get email from cookies
-        const token = req.cookies.token;
-
-        if (!token) {
-            return res.status(401).json({ message: 'Please login to access this resource' });
-        }
-        const email1 = await jwt.verify(token, process.env.SECRET_KEY);
-        const email = email1.email;
+        
+        
+        const email = req.email
 
 
         //get the data from the request body 
@@ -177,7 +172,7 @@ exports.saveSoloEvents = async (req, res) => {
                 events: data
             });
             await individualEvent.save();
-            res.status(200).json({ message: 'Saved successfully (new record created)' });
+            res.status(200).json({ message: 'Saved successfully' });
         }
 
         console.log(data)
@@ -347,21 +342,12 @@ async function sendInvitation(email, pid, tid1, team_name, event1) {
 exports.saveTeam = async (req, res) => {
     try {
 
-        ///get cookie token
-        const token = req.cookies.token;
-        if (!token) {
-            return res.status(401).json({ message: 'Please Login' });
-        }
+     
 
-        //verify and get email
-
-        const verify1 = await jwt.verify(token, process.env.SECRET_KEY);
-        if (!verify1) {
-            return res.status(401).json({ message: 'Invalid Token' });
-        }
+        
 
 
-        const email = verify1.email;
+        const email = req.email;
         const { name, event, members } = req.body;
 
         //check for same team name event
@@ -478,15 +464,9 @@ exports.getInvitation = async (req, res) => {
     try {
         //security handle latr 
 
-        //verify email with token email
-        const token = req.cookies.token;
+       
 
-        if (!token) {
-            return res.status(401).json({ message: "Unauthorized" })
-        }
-        const decoded = await jwt.verify(token, process.env.SECRET_KEY);
-
-        const emailToken = decoded.email;
+        const emailToken = req.email;
 
         console.log(emailToken)
         const data = await INVITATION.find({ email: emailToken });
@@ -505,7 +485,9 @@ exports.getInvitation = async (req, res) => {
 }
 
 
-//add verified memeber to the database 
+//add verified memeber to the database when the user accepts the 
+//invitation
+//delete the record from the invitation table
 
 exports.addVerifiedMember = async (req, res) => {
     try {
@@ -541,6 +523,16 @@ exports.addVerifiedMember = async (req, res) => {
 
         // Save the updated team object
         await team.save();
+
+
+
+        //delete the record from the invitation table
+        const result = await INVITATION.deleteOne({ tid: tid, pid: pid });
+        if (result.deletedCount === 0) {
+            // If no documents were deleted, return a message
+            return res.status(404).json({ message: 'No member found with the provided TID and PID.' });
+        }
+
         res.status(200).json({ message: "Member Added Successfully!" });
 
 
@@ -586,6 +578,72 @@ exports.delInvitation = async (req, res) => {
 }
 
 
+//function to delete the team by the team leader 
+exports.delTeam = async (req, res) => {
+    try {
+
+        //verify email with token email
+      
+        const tid = req.body.tid;
+
+        
+
+        const emailToken = req.email;
+
+        //get the email from team leader from the tid
+        const teamLeaderEmail = await TEAM.findOne({ tid: tid })
+
+        if (!teamLeaderEmail) {
+            return res.status(404).json({ message: "No team found with the provided TID" });
+        }
+        const email1 = teamLeaderEmail.created_by;
+
+
+        console.log("edede", email1);
+        //if the record is deleted by the team leader then only delete
+
+        if (email1 !== emailToken) {
+            return res.status(404).json({ message: "Team can be deleted by Team Leader only" });
+        }
+
+
+        //before deleting the table save deleted record in the backup table
+        const backup = new TEAM_BACKUP({
+            tid: teamLeaderEmail.tid,
+            name: teamLeaderEmail.name,
+            event: teamLeaderEmail.event,
+            temp_members: teamLeaderEmail.temp_members,
+            actual_members: teamLeaderEmail.actual_members,
+            created_by: teamLeaderEmail.created_by,
+
+        });
+
+        //save in the backup table 
+
+        await backup.save();
+
+        //else delete the team
+        const result = await TEAM.deleteOne({ tid: tid });
+
+        console.log(result)
+        //if the team is deleted then send the response
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "No team found with the provided TID" });
+
+        }
+
+        return res.status(200).json({ message: "Team Deleted Successfully" });
+
+    }
+
+
+    catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server Error" })
+    }
+}
+
+
 
 //get the indiviaul and team events participated by student
 
@@ -593,16 +651,9 @@ exports.individualParticipation = async (req, res) => {
     try {
 
 
-        //verification logic 
-         //verify email with token email
-         const token = req.cookies.token;
+     
 
-         if (!token) {
-             return res.status(401).json({ message: "Unauthorized" })
-         }
-         const decoded = await jwt.verify(token, process.env.SECRET_KEY);
- 
-         const emailToken = decoded.email;
+        const emailToken = req.email;
 
         const response = await INDIVIDUAL.findOne({ email: emailToken });
 
@@ -612,9 +663,9 @@ exports.individualParticipation = async (req, res) => {
 
         //get the pid from the STUDENT table using email
         const pid = await STUDENT.findOne({ email: emailToken }).select('pid')
-       
+
         //retrn the response
-        res.status(200).json({ data: response,pid:pid })
+        res.status(200).json({ data: response, pid: pid })
     }
     catch (error) {
         console.log(error)
@@ -627,13 +678,10 @@ exports.individualParticipation = async (req, res) => {
 exports.teamParticipation = async (req, res) => {
     try {
 
-
-        //verification logic 
-        const email = req.body.email
-
+        const emailToken = req.email;
         //find pid from the email from student collectiond 
 
-        const pidData = await STUDENT.findOne({ email: email }, { pid: 1 });
+        const pidData = await STUDENT.findOne({ email: emailToken }, { pid: 1 });
         if (!pidData) {
             return res.status(404).json({ message: 'No student found with the provided email.' })
         }

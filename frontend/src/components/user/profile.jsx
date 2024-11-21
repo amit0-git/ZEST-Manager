@@ -38,8 +38,8 @@ const UserProfile = () => {
       setData(response.data.data);
     } catch (error) {
 
-      navigate("/studentRegister");
-      setError("Failed to fetch user data.");
+      // navigate("/studentRegister");
+      setError("Failed! Please Login.");
 
     } finally {
       setLoading(false);
@@ -72,6 +72,8 @@ const UserProfile = () => {
   };
 
   const handleEditEvent = () => {
+    //set the registered flag to false
+
     navigate('/studentRegister');
   };
 

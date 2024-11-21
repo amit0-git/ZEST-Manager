@@ -8,6 +8,12 @@ const USER = require("../model/user")
 const STUDENT = require("../model/studentRegister")
 const COUNT = require("../model/count")
 
+
+
+
+
+
+
 //dend otp if time is more than 5 min
 //nd no record for otp exists
 
@@ -45,8 +51,7 @@ async function canSendOtp(email) {
 exports.getData = async (req, res) => {
     try {
 
-        const email = req.body.email;
-        console.log("email", email);
+     
 
         //verify email with token email
         const token = req.cookies.token;
@@ -59,7 +64,7 @@ exports.getData = async (req, res) => {
         const emailToken = decoded.email;
 
 
-        console.log(emailToken, email);
+        console.log(emailToken);
 
       
 
@@ -312,26 +317,26 @@ exports.register = async (req, res) => {
     try {
 
 
-        //get cookie data
-        const ck = req.cookies.token;
+        const token = req.cookies.token;
+        const tid = req.body.tid;
 
-        console.log("cookie", ck)
-
-        //verify token
-        if (!ck) {
-            //return login status
-            return res.status(401).json({ message: 'Unauthorized' });
-
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
+
+        const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+        const emailToken = decoded.email;
+
+
         //get last count of count collection
         const lastCount = await getLastCount();
         console.log("Last Count", lastCount)
 
         const pid = "P" + Number(lastCount + 1)
         //trim data to remove spaces
-        const decoded = jwt.verify(ck, process.env.SECRET_KEY);
+      
 
-        const email = decoded.email;
+        const email = emailToken;
         const rollno = req.body.rollno.trim()
         const name = req.body.name.trim()
         const phone = req.body.phone.trim()
@@ -348,7 +353,8 @@ exports.register = async (req, res) => {
         //chk user already registered then update the user 
 
         const alreadyRegistered = await STUDENT.findOne({ email: email })
-        if (alreadyRegistered) {
+        //if the user is editing its details
+        if (alreadyRegistered  && email===emailToken) {
 
             //if the user is already registered then update the student
             const updatedStudent = await STUDENT.findOneAndUpdate(
@@ -374,10 +380,14 @@ exports.register = async (req, res) => {
             }
         }
 
+        //chk for duplicate rollno
+
+
+
         
 
 
-        //if the use ris not registered then save user in the database
+       
         
 
 
@@ -404,8 +414,28 @@ exports.register = async (req, res) => {
 
     }
     catch (error) {
-        console.error(error);
+        console.error("error",error);
         res.status(500).json({ message: 'Server error' });
+
+    }
+}
+
+
+
+//logout functionalty
+exports.logout=async(req,res)=>{
+    try {
+        //reset the cookie
+        console.log("Logout ")
+        res.clearCookie('token', {
+            httpOnly: false, // Makes the cookie inaccessible to JavaScript
+            secure: false, // Set to true in production for HTTPS
+            
+          });
+          res.status(200).json({ message: 'Logged out successfully.' });
+
+    }
+    catch(error){
 
     }
 }

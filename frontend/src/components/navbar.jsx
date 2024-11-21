@@ -1,23 +1,49 @@
 // Navbar.js
-import React,{useState} from 'react';
-import styles from './Navbar.module.css'; // Import the CSS module
+import React, { useState } from 'react';
+import {  useNavigate} from 'react-router-dom';
+import styles from './navbar.module.css'; // Import the CSS module
+import Cookies from 'js-cookie';
+import axios from "axios";
+import { faUser, faLink,faList, faRightFromBracket,faHouse } from '@fortawesome/free-solid-svg-icons'; 
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //dheerendra
 
 function Navbar() {
 
-    // State to manage the visibility of the nav links
+    
     const [isNavVisible, setNavVisible] = useState(false);
-
-    // Function to toggle the visibility of the nav links
+   
+   const navigate=useNavigate();
     const toggleNav = () => {
         setNavVisible(!isNavVisible);
     };
 
+    // Function to handle logout
+    const handleLogout = async () => {
+
+        try {
+            const logout = await axios.post('/api/users/logout', {}, { withCredentials: true });
+            if (logout.data) {
+
+                console.log(logout.data);
+                Cookies.remove("logged")
+                navigate("/")
+              
+            }
+
+
+        }
+        catch (error) {
+            console.error(error);
+        }
+
+    };
 
     return (
         <header>
             <nav className={styles.nav}>
-                <a href="/" className={styles.logo}>
+                <a  className={styles.logo}>
                     SRMS
                 </a>
 
@@ -28,17 +54,12 @@ function Navbar() {
                 </div>
 
                 <div className={`${styles.nav__link} ${isNavVisible ? '' : styles.hide}`}>
-                    <a href="/">Home</a>
-                    <a href="/register">PID</a>
-                    <a href="/tid">TID</a>
-                    <a href="jcLogin">JC Panel</a>
-                    <a href="/admin">Admin</a>
-                    <a href="/barcode">Scan ID</a>
-                    <a href="/logout">Log Out</a>
+                    <a href="/"><FontAwesomeIcon  className={styles.icon} icon={faHouse} />Sign In</a>
+                    <a href="/profile"> <FontAwesomeIcon  className={styles.icon} icon={faUser} />Profile</a>
+                    <a href="/invitation"><FontAwesomeIcon className={styles.icon} icon={faLink} />Invitation</a>
+                    <a href="participation"><FontAwesomeIcon  className={styles.icon} icon={faList} />Participation</a>
 
-                    
-                    <input type="text" name="pid" placeholder="Print PID" />
-                   
+                    <a href="#" onClick={handleLogout}><FontAwesomeIcon className={styles.icon} icon={faRightFromBracket} />Log Out</a>
                 </div>
             </nav>
         </header>
@@ -46,104 +67,3 @@ function Navbar() {
 }
 
 export default Navbar;
-// Navbar.js
-
-
-// Navbar.js
-// Navbar.js
-// Navbar.js
-// Navbar.js
-
-
-// import React, { useState } from 'react';
-// import {
-//   AppBar,
-//   Toolbar,
-//   IconButton,
-//   Typography,
-//   Drawer,
-//   List,
-//   ListItem,
-//   ListItemText,
-//   TextField,
-//   Divider,
-//   useMediaQuery,
-//   Button,
-//   Box,
-// } from '@mui/material';
-// import MenuIcon from '@mui/icons-material/Menu';
-// import { useTheme } from '@mui/material/styles'; // Import useTheme
-
-// function Navbar() {
-//   const theme = useTheme(); // Get the theme
-//   const [isDrawerOpen, setDrawerOpen] = useState(false);
-
-//   const toggleDrawer = (open) => (event) => {
-//     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-//       return;
-//     }
-//     setDrawerOpen(open);
-//   };
-
-//   const navLinks = [
-//     { text: 'Home', path: '/' },
-//     { text: 'PID', path: '/register' },
-//     { text: 'TID', path: '/tid' },
-//     { text: 'JC Panel', path: '/jcLogin' },
-//     { text: 'Admin', path: '/admin' },
-//     { text: 'Scan ID', path: '/barcode' },
-//     { text: 'Log Out', path: '/logout' },
-//   ];
-
-//   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Use the theme for breakpoints
-
-//   return (
-//     <header>
-//       <AppBar position="static">
-//         <Toolbar>
-//           <Typography variant="h6" style={{ flexGrow: 1 }}>
-//             SRMS
-//           </Typography>
-//           {isMobile ? (
-//             <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)}>
-//               <MenuIcon />
-//             </IconButton>
-//           ) : (
-//             <Box display="flex" alignItems="center">
-//               {navLinks.map((link, index) => (
-//                 <Button key={index} color="inherit" href={link.path}>
-//                   {link.text}
-//                 </Button>
-//               ))}
-//             </Box>
-//           )}
-//         </Toolbar>
-//       </AppBar>
-
-//       <Drawer anchor="right" open={isDrawerOpen} onClose={toggleDrawer(false)}>
-//         <div
-//           role="presentation"
-//           onClick={toggleDrawer(false)}
-//           onKeyDown={toggleDrawer(false)}
-//         >
-//           <List>
-//             {navLinks.map((link, index) => (
-//               <ListItem button key={index} component="a" href={link.path}>
-//                 <ListItemText primary={link.text} />
-//               </ListItem>
-//             ))}
-//           </List>
-//           <Divider />
-//           <TextField
-//             fullWidth
-//             variant="outlined"
-//             placeholder="Print PID"
-//             style={{ margin: '16px' }}
-//           />
-//         </div>
-//       </Drawer>
-//     </header>
-//   );
-// }
-
-// export default Navbar;

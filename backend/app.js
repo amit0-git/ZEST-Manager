@@ -2,7 +2,10 @@ const express=require ('express')
 const mongoose=require('mongoose')
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-
+const morgan = require('morgan');  
+const path = require('path');
+const fs = require('fs');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config()
 
 
@@ -19,6 +22,21 @@ const corsOptions = {
     credentials: true // Allow credentials (cookies)
 };
 
+const logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'), { flags: 'a' });
+//logging middleware
+app.use(morgan('combined', { stream: logStream }));
+
+
+// Create a rate limiter instance
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000,  // 15 minutes in milliseconds
+    max: 500,  // limit each IP to 100 requests per windowMs
+    message: 'Too many requests, please try again later.',
+    standardHeaders: true,  // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false,   // Disable the `X-RateLimit-*` headers
+  });
+
+app.use(limiter);
 app.use(cors(corsOptions));
 
 // Middleware to parse cookies

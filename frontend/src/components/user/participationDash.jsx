@@ -9,15 +9,20 @@ import { Helmet } from 'react-helmet';
 const ParticipationSummary = () => {
   const [individualEvents, setIndividualEvents] = useState([]); // State for individual event participation
   const [teamEvents, setTeamEvents] = useState([]); // State for team event participation
+  const [status, setStatus] = useState('');
+  const [pid, setPid] = useState("");
 
-  const email = localStorage.getItem("userEmail");
-  const pid = localStorage.getItem("pid");
+
 
   // Fetch individual event participation
   useEffect(() => {
+
     const fetchIndividualEvents = async () => {
       try {
-        const response = await axios.post('/api/events/individualParticipation', { email }, { withCredentials: true });
+        const response = await axios.post('/api/events/individualParticipation', { withCredentials: true });
+
+
+        setPid(response.data.pid.pid)
         setIndividualEvents(response.data.data.events); // Assuming response.data is an array of individual events
       } catch (error) {
         console.error('Error fetching individual events:', error);
@@ -25,13 +30,14 @@ const ParticipationSummary = () => {
     };
 
     fetchIndividualEvents();
-  }, [email]); // Fetch data when the email changes
+  }, []); // Fetch data when the email changes
 
   // Fetch team event participation
   useEffect(() => {
     const fetchTeamEvents = async () => {
       try {
-        const response = await axios.post('/api/events/teamParticipation', { email }, { withCredentials: true });
+        const response = await axios.post('/api/events/teamParticipation', { withCredentials: true });
+        console.log("tid",response)
         setTeamEvents(response.data.data); // Assuming response.data is an array of team events
       } catch (error) {
         console.error('Error fetching team events:', error);
@@ -39,14 +45,30 @@ const ParticipationSummary = () => {
     };
 
     fetchTeamEvents();
-  }, [email]); // Fetch data when the email changes
+  }, []); // Fetch data when the email changes
+
+
+
+  const handleDelete = async (tid) => {
+    try {
+      const response = await axios.post('/api/events/delTeam', {
+
+        tid: tid
+      }, { withCredentials: true });
+
+      setStatus(response.data.message);
+      console.log(response.data)
+    } catch (error) {
+      setStatus(error.response.data.message);
+    }
+  };
 
   return (
     <div className={styles.participationWrapper}>
-        <Helmet>
-                <title>Participation</title>
-              
-            </Helmet>
+      <Helmet>
+        <title>Participation</title>
+
+      </Helmet>
       <h1 className={styles.title}>Total Participation</h1>
 
       {/* Individual Events Section */}
@@ -84,7 +106,7 @@ const ParticipationSummary = () => {
       <div className={styles.cardTitle}>Team Event</div>
       <div className={styles.cardWrapper}>
         <div className={styles.card}>
-         
+
           <table className={styles.table}>
             <thead>
               <tr>
@@ -119,7 +141,9 @@ const ParticipationSummary = () => {
           </table>
         </div>
       </div>
+      {status && <div className={styles.errorStatus}>{status}</div>}
     </div>
+  
   );
 };
 

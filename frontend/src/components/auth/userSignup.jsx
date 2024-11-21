@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
+import { NavLink,useNavigate } from 'react-router-dom';
 import styles from "./userLogin.module.css"
 import { Helmet } from 'react-helmet';
 function UserSignup() {
@@ -8,6 +9,8 @@ function UserSignup() {
     const [message, setMessage] = useState('');
 
     const [otpStatus, setOtpStatus] = useState(true);
+
+    const navigate=useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -40,7 +43,7 @@ function UserSignup() {
     //fn to signup user
     const signupUser = async (email, password, otp) => {
         try {
-            const response = await fetch('http://127.0.0.1:5000/users/signup', {
+            const response = await fetch('/api/users/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,6 +55,9 @@ function UserSignup() {
 
             setMessage(data.message);
             setOtpStatus(false);
+
+            //on signup success red to login
+            navigate('/')
 
             console.log(data);
 
@@ -68,7 +74,7 @@ function UserSignup() {
     //fn to send otp
     const sendOtp = async (email) => {
         try {
-            const response = await axios.post('http://127.0.0.1:5000/users/sendOtp', {
+            const response = await axios.post('/api/users/sendOtp', {
                 email: email
             });
             console.log("Response from sendOtp:", response.data); // Log the response data
@@ -151,6 +157,8 @@ function UserSignup() {
                     />
                     <button type="submit">{otpStatus ? "Send OTP" : "Sign Up"}</button>
                 </form>
+
+                <div><NavLink className={styles.createAcc} to="/" >Already have an account? Login Here</NavLink></div>
             </div>
 
             {message && (

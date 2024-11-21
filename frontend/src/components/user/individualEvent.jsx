@@ -22,7 +22,7 @@ const SoloEvents = () => {
   // Fetch all the individual events and display them
   const fetchEvents = async () => {
     try {
-      const response = await axios.post("/api/events/getSoloEvents");
+      const response = await axios.post("/api/events/getSoloEvents", { withCredentials: true });
       setEvents(response.data);
       console.log(response.data);
     } catch (error) {
@@ -134,11 +134,14 @@ const SoloEvents = () => {
                 value={event.event}
                 checked={selectedOptions.includes(event.event)}
                 onChange={handleCheckboxChange}
+                disabled={event.halt === 1} 
                 className={styles.checkbox}
               />
+              
               <label htmlFor={`option${index}`} className={styles.label}>
                 {event.event}
               </label>
+              {event.halt === 1 && <div className={styles.closed}>Registration Closed*</div>} 
             </div>
           ))}
         </div>

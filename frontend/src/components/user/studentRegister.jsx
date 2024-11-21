@@ -3,7 +3,7 @@ import styles from "./student.module.css"
 import axios from "axios";
 import { Helmet } from 'react-helmet';
 import { Link, useNavigate } from 'react-router-dom';
-
+import Cookies from 'js-cookie';
 
 function studentRegister() {
 
@@ -30,11 +30,10 @@ function studentRegister() {
     async function getUserData() {
         try {
 
-            const email = localStorage.getItem("userEmail")
-            if (email) {
-                const response = await axios.post("/api/users/getData", {
-                    email: email
-                }, { withCredentials: true });
+        
+            
+                const response = await axios.post("/api/users/getData"
+                    , { withCredentials: true });
 
                 console.log("edit data", response.data.data);
 
@@ -53,10 +52,13 @@ function studentRegister() {
                     yearSelect: userData.year || '1',
                 }));
 
+
+
+
                 //set the reg button to update
                 setReg("Update")
 
-            }
+            
 
         }
         catch (error) {
@@ -122,13 +124,13 @@ function studentRegister() {
         const registerd = await registerStudent();
 
         if (registerd) {
-
-
             //store email in localstorage
-            console.log(registerd.data)
-            localStorage.setItem("pid", registerd.data.pid);
+            console.log("registered: ",registerd.data)
+         
+            //afterregistering the student set registered to true 
+       
+            Cookies.set('registered', 'true', { expires: 1/24 });
 
-            localStorage.setItem('userEmail', registerd.data.email);
 
 
             //redirect to profile page
@@ -136,6 +138,23 @@ function studentRegister() {
         }
         console.log('Form submit:', formData);
     };
+
+
+
+
+    //chk the  registered flag
+    useEffect(() => {
+        const registered = Cookies.get('registered');
+        console.log("Registered",registered)
+            if (registered==="true") {
+                
+                //if the use is logged in then navigate to profile  page
+                navigate("/profile")
+            }
+        },[navigate]);
+
+
+
     return (
         <div id={styles.wrapper}>
             <Helmet>

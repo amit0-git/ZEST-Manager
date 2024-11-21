@@ -10,5 +10,7 @@ router.post('/sendOtp', userController.sendOtp);
 router.post('/login', userController.login);
 router.post('/register',userController.register);
 router.post('/getData',userController.getData);
+router.post('/logout',userController.logout);
+
 
 module.exports = router;

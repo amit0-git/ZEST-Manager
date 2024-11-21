@@ -7,13 +7,16 @@ a {
    
     
   }
+  .icon{
+    margin-right: 5px;
+  }
 
   .nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 5px;
-    background-color: rgb(66, 153, 245);
+    background-color: rgb(255, 116, 10) !important;
   }
 
   .logo {
@@ -37,28 +40,25 @@ a {
   }
 
   .nav__link {
-    position: fixed;
-    width: 90%;
+    position: absolute;
+    width: 100%;
     top: 3.3rem;
-    left: 18px;
-    background-color: lightblue;
+    left: 0px;
+    z-index: 2;
+    background-color: rgb(255, 116, 10) !important;
+    
   }
 
   .nav__link a {
     display: block;
     text-align: center;
     padding: 10px 0;
+    color: white;
   }
-  #print{
-      display: block;
-      width: 80%;
-      margin: 0 auto;
-      padding-bottom: 5px;
-     
-    }
+
 
   .nav__link a:hover {
-    background-color: rgb(175, 175, 175);
+    background-color: rgb(252, 153, 13);
     color: black;
   }
 
@@ -68,7 +68,7 @@ a {
 
   @media screen and (min-width: 600px) {
     .nav {
-      background: rgb(77, 66, 228);
+        background-color: rgb(255, 116, 10) !important;
 
     }
 
@@ -86,11 +86,7 @@ a {
       color: white;
       /* font-family: 'Poppins', sans-serif; */
     }
-    #print{
-      display: inline-block;
-      width: auto;
-     
-    }
+   
 
     .hamburger {
       display: none;

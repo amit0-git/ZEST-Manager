@@ -3,15 +3,20 @@ import styles from "./userLogin.module.css"
 import axios from 'axios';
 import { useNavigate, NavLink } from 'react-router-dom';
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from 'js-cookie';
 
 import { Helmet } from 'react-helmet';
+
+
 function UserLogin() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+  
     const [captchaValue, setCaptchaValue] = useState(null); // State for captcha value
-
+ 
+    
     const navigate = useNavigate();
 
 
@@ -35,8 +40,10 @@ function UserLogin() {
             //if successfull login
             //redirect to student register page 
             if (response.data) {
-
-                    navigate("/profile")
+                //on login successfull store logged value in db
+                Cookies.set('logged', 'true', { expires: 1/24 });
+             
+                    navigate("/studentRegister")
             }
 
           
@@ -49,6 +56,17 @@ function UserLogin() {
 
         }
     };
+
+    //chk the logged in flag
+    useEffect(() => {
+    const logged=Cookies.get("logged")
+    console.log("Logged",logged)
+        if (logged==="true") {
+            console.log("Login: ")
+            //if the use is logged in then navigate to student register  page
+            navigate("/studentRegister")
+        }
+    },[navigate]);
 
 
        //clear messgae after 10 sec
